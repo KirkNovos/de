@@ -42,10 +42,11 @@
 
     По-умолчанию размер элемента списка вычисляется по содержимому
 
-    
+    ![](./img/de001.png)
 
 
     ```xml
+        <!-- этим кодом мы устанавливаем стиль отображения Stretch - по ширине -->
         <ListView.ItemContainerStyle>
             <Style 
                 TargetType="ListViewItem">
@@ -54,11 +55,24 @@
                     Value="Stretch" />
             </Style>
         </ListView.ItemContainerStyle>
+    ```
 
+    ![](./img/de002.png)
+
+
+    ```xml
+        <!-- тут описываем шаблон одного элемента -->
         <ListView.ItemTemplate>
             <DataTemplate>
-                <Border BorderThickness="1" BorderBrush="Black" CornerRadius="5">
-                    <Grid Margin="10" HorizontalAlignment="Stretch">
+                <!-- рисуем вокруг элемента границу с загругленными углами -->
+                <Border 
+                    BorderThickness="1" 
+                    BorderBrush="Black" 
+                    CornerRadius="5">
+                    <!-- основная "сетка" из 3-х столбцов: картинка, содержимое, цена -->
+                    <Grid 
+                        Margin="10" 
+                        HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="64"/>
                             <ColumnDefinition Width="*"/>
@@ -69,9 +83,15 @@
                             Width="64" 
                             Height="64"
                             Source="{Binding Path=ImagePreview}" />
-
                         <!-- ,TargetNullValue={StaticResource DefaultImage} -->
 
+                        <TextBlock 
+                            Text="{Binding TotalPrice}" 
+                            Grid.Column="2" 
+                            HorizontalAlignment="Right" 
+                            Margin="10"/>
+
+                        <!-- для содержимого рисуем вложенную сетку -->
                         <Grid Grid.Column="1" Margin="5">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="20"/>
@@ -79,22 +99,74 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding ProductType.Title}"/>
-                                <TextBlock Text=" | "/>
-                                <TextBlock Text="{Binding Title}"/>
+                            <StackPanel
+                                Orientation="Horizontal">
+                                <TextBlock 
+                                    Text="{Binding ProductType.Title}"/>
+                                <TextBlock 
+                                    Text=" | "/>
+                                <TextBlock 
+                                    Text="{Binding Title}"/>
                             </StackPanel>
 
-                            <TextBlock Text="{Binding ArticleNumber}" Grid.Row="1"/>
-                            <TextBlock Text="{Binding MaterialsList}" Grid.Row="2"/>
-
+                            <TextBlock 
+                                Text="{Binding ArticleNumber}" 
+                                Grid.Row="1"/>
+                            <TextBlock 
+                                Text="{Binding MaterialsList}" 
+                                Grid.Row="2"/>
                         </Grid>
-                        
-                        <TextBlock Text="{Binding TotalPrice}" Grid.Column="2" HorizontalAlignment="Right" Margin="10"/>
                     </Grid>
                 </Border>
             </DataTemplate>
         </ListView.ItemTemplate>
-        
     </ListView>
+    ```
+
+    В разметке используются вычисляемые поля:
+
+    ```cs
+    public partial class Product
+    {
+        // ссылка на картинку
+        // по ТЗ, если картинка не найдена, то должна выводиться картинка по-умолчанию
+        // в XAML-е можно это сделать средствами разметки, но там есть условие что вместо ссылки на картинку получен NULL
+        // у нас же возможна ситуация, когда в базе есть путь к картинке, но самой картинки в каталоге нет
+        // поэтому я сделал проверку наличия файла картинки и возвращаю картинку по-умолчанию, если нужной нет 
+        public Uri ImagePreview
+        {
+            get
+            {
+                var imageName = System.IO.Path.Combine(Environment.CurrentDirectory, Image ?? "");
+                return System.IO.File.Exists(imageName) ? new Uri(imageName) : new Uri("pack://application:,,,/Images/picture.png");
+            }
+        }
+
+        // список материалов, входящих в продукт
+        // перебираем записи из коллекции и формируем строку
+        public string MaterialsList
+        {
+            get
+            {
+                var Result = "";
+                foreach(var pm in ProductMaterial)
+                {
+                    Result += (Result=="" ? "" : ", ")+pm.Material.Title;
+                }
+                return Result;
+            }
+        }
+
+        // общую стоимость продукта тоже считаем по цене и количеству используемых материалов
+        public decimal TotalPrice
+        {
+            get
+            {
+                decimal Result = 0;
+                foreach (var pm in ProductMaterial)
+                    Result += pm.Material.Cost;
+                return Result;
+            }
+        }
+    }
     ```
