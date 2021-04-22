@@ -37,9 +37,9 @@ namespace Task3
             get
             {
                 var Result = "";
-                foreach(var pm in ProductMaterial)
+                foreach (var pm in ProductMaterial)
                 {
-                    Result += (Result=="" ? "" : ", ")+pm.Material.Title;
+                    Result += (Result == "" ? "" : ", ") + pm.Material.Title;
                 }
                 return Result;
             }
@@ -55,6 +55,20 @@ namespace Task3
                 return Result;
             }
         }
+
+        public string BackgroundColor 
+        {
+            get 
+            {
+                if(ProductSale.Count==0)
+                    return "#faa";
+                var LastSale = ProductSale.Max(ps => ps.SaleDate);
+                var TimeDelta = DateTime.Now - LastSale;
+                if(TimeDelta.TotalDays>30)
+                    return "#faa";
+                return "#fff";
+            }
+        }
     }
 
     /// <summary>
@@ -64,7 +78,17 @@ namespace Task3
     {
         private IEnumerable<Product> _ProductList;
 
-        private int _CurrentPage = 1;
+        private int SortType = 0;
+        public string[] SortList { get; set; } = {
+            "Без сортировки",
+            "название по убыванию",
+            "название по возрастанию",
+            "номер цеха по убыванию",
+            "номер цеха по возрастанию",
+            "цена по убыванию",
+            "цена по возрастанию" };
+
+        private int _CurrentPage = 1;       
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -97,7 +121,19 @@ namespace Task3
         {
             get
             {
-                return _ProductList.Skip((CurrentPage-1)*20).Take(20);
+                var Result = _ProductList;
+
+                switch (SortType)
+                {
+                    case 1:
+                        Result = Result.OrderBy(p => p.Title);
+                        break;
+                    case 2:
+                        Result = Result.OrderByDescending(p => p.Title);
+                        break;
+                }
+
+                return Result.Skip((CurrentPage-1)*20).Take(20);
             }
             set
             {
@@ -127,5 +163,10 @@ namespace Task3
             CurrentPage++;
         }
 
+        private void SortTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SortType = SortTypeComboBox.SelectedIndex;
+            Invalidate();
+        }
     }
 }

@@ -26,21 +26,41 @@
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
 
+            <WrapPanel Orientation="Horizontal" ItemHeight="50">
+                <Label Content="Сортировка: "
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center"/>
+                <ComboBox
+                    Name="SortTypeComboBox"
+                    SelectedIndex="0"
+                    VerticalContentAlignment="Center"
+                    MinWidth="200"
+                    SelectionChanged="SortTypeComboBox_SelectionChanged"
+                    ItemsSource="{Binding SortList}"/>
+            </WrapPanel>
+            
             <ListView
                 Grid.Row="1"
                 ItemsSource="{Binding ProductList}"
                 x:Name="ProductListView">
 
-                <!--ListView.ItemContainerStyle>
+                <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="MaxWidth" Value="{Binding ElementName=ProductListView,Path=Width}"/>
                     </Style>
-                </-->
+                </ListView.ItemContainerStyle>
 
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderThickness="1" BorderBrush="Black" CornerRadius="5">
-                            <Grid Margin="10" HorizontalAlignment="Stretch">
+                        <Border 
+                            BorderThickness="1" 
+                            BorderBrush="Black" 
+                            Background="{Binding BackgroundColor}"
+                            CornerRadius="5">
+                            <Grid 
+                                Margin="10"
+                                HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="64"/>
                                     <ColumnDefinition Width="*"/>
